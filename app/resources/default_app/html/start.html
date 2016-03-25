@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Loading Q, please wait...</title>
+	<script type="text/javascript">
+		var fs = require('fs');
+		$ = require('jquery');
+		var LocalStorage = require('node-localstorage').LocalStorage;
+		var localStorage = new LocalStorage('./storage');
+		var fs = require('fs');
+		var mkdirp = require('mkdirp');
+		var ipc = require('ipc');
+		var download = require('download-file');
+		var qapi = require('../api/qapi.js');
+		var useExt = require('../api/useExtensions.js');
+		var started = 0;
+
+
+		if(localStorage.getItem('id') == null) {
+			$(location).attr('href','file://' + __dirname + '/userMain.html');
+		}else{
+			login();
+		}
+
+		localStorage.setItem("QServer", "http://anspirit.org/php");
+
+		//login
+		function login(){
+		  $.ajax({
+		    type: "post",
+		    url: localStorage.getItem("QServer") + '/login.php',
+		    data: {'email': localStorage.getItem('email'), 'password': localStorage.getItem('pass')},
+		    success: function(data){
+		      processLoginResult(data);
+		    },
+		    error: function(a, error){
+					//exit
+					ipc.send("appQuit");
+		    },
+				timeout: 3000,
+		    dataType: "json"
+		  });
+		}
+		function processLoginResult(data){
+		  if (!data.login){
+					qapi.getUserLocation(function(position){
+						localStorage.setItem('UserPosition', {longitude: position.coords.longitude, latitude: position.coords.latitude});
+						$(location).attr('href','file://' + __dirname + '/userMain.html');
+					});
+		  }else{
+		    localStorage.setItem('id', data.id);
+		    localStorage.setItem('name', data.name);
+		    localStorage.setItem('version', data.version);
+		    localStorage.setItem('lang', data.lang);
+		    localStorage.setItem('tokenCode', data.tokenCode);
+		    localStorage.setItem('email', data.email);
+				localStorage.setItem('country', data.country);
+				localStorage.setItem('hubs', data.hubs);
+
+				downloadExtensions();
+		  }
+		}
+		function downloadExtensions(){
+			$.ajax({
+				type: 'get',
+				url:  localStorage.getItem("QServer") + '/userExtensions.php',
+				data: {'user': localStorage.getItem('id')},
+				dataType: 'json',
+				success: function(extensions){
+					var file = './rules.json';
+					var exts = JSON.stringify(extensions);
+					var fs = require('fs');
+					fs.writeFile(file, exts, function(){
+						don = true;
+					});
+					deleteFolder("./rules");
+					$.each(extensions, function(key, val){
+						 setupExt(key, function(){
+									 //Execute every extensions on start
+									 //We can use QAPI`s '/api/useExtensions.js'
+									 useExt.getRulePaths(function(paths){
+										 useExt.onStart(paths, function(){
+											 //Last step is redirect to UI view
+											 started = started + 1;
+											 if(started == extensions.length){
+													  qapi.getUserLocation(function(position){
+													 		localStorage.setItem('UserPosition', {longitude: position.coords.longitude, latitude: position.coords.latitude});
+													 		$(location).attr('href','file://' + __dirname + '/userMain.html');
+												    });
+											  }
+									   	});
+								 });
+							 });
+						 });
+				function setupExt(i, callback){
+					var url = extensions[i]['pathToExt'];
+					var folderName = extensions[i]['name'];
+					mkdirp('./rules/'+ folderName, function (err) {
+						if (err) console.error(err)
+					});
+					//Hub.js download
+					var options = {
+						directory: "./rules",
+						filename: folderName + "/hub.js"
+					}
+					download(url + "/hub.js", options, function(err){
+					if (err) console.log("error");
+						//Settings.html download
+						var options = {
+							directory: "./rules",
+							filename: folderName + "/settings.html"
+						}
+						download(url + "/settings.html", options, function(err){
+						if (err) console.log("error");
+						//About.html download
+						var options = {
+								directory: "./rules",
+								filename: folderName + "/about.html"
+						}
+						download(url + "/about.html", options, function(err){
+								if (err) console.log("error");
+								//storage.json download
+								var options = {
+										directory: "./rules",
+										filename: folderName + "/storage.json"
+								}
+								download(url + "/about.html", options, function(err){
+										if (err) console.log("error");
+										callback();
+								});
+						});
+				});
+		});
+	}
+					if(extensions.length == 0){
+							qapi.getUserLocation(function(position){
+								localStorage.setItem('UserPosition', {'longitude': position.coords.longitude, 'latitude': position.coords.latitude});
+								$(location).attr('href','file://' + __dirname + '/userMain.html');
+							});
+					}
+				},
+				error: function(a, error){
+					console.log(error);
+				}
+			});
+		}
+
+		var deleteFolder = function(path){
+		  if(fs.existsSync(path) ) {
+		    fs.readdirSync(path).forEach(function(file,index){
+		      var curPath = path + "/" + file;
+		      if(fs.lstatSync(curPath).isDirectory()) { // recurse
+		        deleteFolder(curPath);
+		      } else { // delete file
+		        fs.unlinkSync(curPath);
+		      }
+		    });
+		    fs.rmdirSync(path);
+				//Removed
+		  }else{
+				//Not found path
+			}
+		};
+
+		//Error handling
+		process.on('uncaughtException', function (exception) {
+		 // handle or ignore error
+		 ipc.send("appQuit");
+		});
+	</script>
+</head>
+<body>
+
+</body>
+</html>

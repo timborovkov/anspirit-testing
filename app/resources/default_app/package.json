@@ -1,0 +1,19 @@
+{
+  "name": "desktopapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Timofei Borovkov",
+  "license": "ISC",
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.0"
+  },
+  "dependencies": {
+    "download-file": "^0.1.5",
+    "forecast": "^0.2.1",
+    "request-ip": "^1.1.4"
+  }
+}

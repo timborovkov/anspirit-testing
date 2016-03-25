@@ -1,0 +1,50 @@
+{
+  "Logout":{
+    "ru": "Выйти"
+  },
+  "Settings":{
+    "ru": "Настройки"
+  },
+  "My Extensions":{
+    "ru": "Мои расширения"
+  },
+  "Home":{
+    "ru": "Домой"
+  },
+  "Market":{
+    "ru": "Магазин"
+  },
+  "Emoji":{
+    "ru": "Emoji"
+  },
+  "Schedule":{
+    "ru": "Расписание"
+  },
+  "wake me up if you need me":{
+    "ru": "Разбуди меня если я понадоблюсь"
+  },
+  "How can I help you":{
+    "ru": "Как я могу помочь"
+  },
+  "okey":{
+    "ru": "окей"
+  },
+  "Speak ...":{
+    "ru": "Говори ..."
+  },
+  "hello":{
+    "ru": "Привет"
+  },
+  "what did you say?":{
+    "ru": "что ты сказал?"
+  },
+  "Say hello":{
+    "ru": "Скажи привет"
+  },
+  "Sorry I didn't get that":{
+    "ru":"Извини но я не понял"
+  },
+  "Home Control":{
+    "ru":"Управление домом"
+  }
+}
